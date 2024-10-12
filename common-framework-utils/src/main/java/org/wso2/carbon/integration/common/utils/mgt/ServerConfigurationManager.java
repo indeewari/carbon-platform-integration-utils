@@ -38,7 +38,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.rmi.RemoteException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -103,16 +105,9 @@ public class ServerConfigurationManager {
         if (fileName.contains(AXIS2_XML)) {
             confDir = confDir + "axis2" + File.separator;
         }
-        originalConfig = new File(confDir + fileName);
-        backUpConfig = new File(confDir + fileName + ".backup");
 
-        Files.move(originalConfig.toPath(), backUpConfig.toPath(), StandardCopyOption.REPLACE_EXISTING);
-
-        if (originalConfig.exists()) {
-            throw new IOException("Failed to rename file from " + originalConfig.getName() + "to" + backUpConfig.getName());
-        }
-
-        configDatas.add(new ConfigData(backUpConfig, originalConfig));
+        // Call the backup method with the constructed file path
+        backupConfiguration(new File(confDir + fileName));
     }
 
     /**
@@ -123,7 +118,10 @@ public class ServerConfigurationManager {
     private void backupConfiguration(File file) throws IOException {
         //restore backup configuration
         originalConfig = file;
-        backUpConfig = new File(file.getAbsolutePath() + ".backup");
+
+        // Creating a unique backup file not to conflict with multiple config modifications on the same pack
+        String timestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        backUpConfig = new File(file.getAbsolutePath() + ".backup." + timestamp);
 
         Files.move(originalConfig.toPath(), backUpConfig.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
